@@ -3,3 +3,6 @@ logs/
 .env
 *.log
 .DS_Store
+
+# File lock/temporary Office (Excel/Word)
+~$*
