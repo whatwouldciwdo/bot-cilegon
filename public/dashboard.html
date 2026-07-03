@@ -1,195 +1,397 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Bot Nominasi CL</title>
+  <title>Bot Nominasi CL · Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            ink: {
+              950: '#0a0f1e', 900: '#0f172a', 850: '#141f38',
+              800: '#1e293b', 700: '#334155', 600: '#475569',
+            },
+          },
+          boxShadow: {
+            glow: '0 0 0 1px rgba(255,255,255,.04), 0 8px 30px rgba(0,0,0,.35)',
+          },
+        },
+      },
+    };
+  </script>
   <style>
-    :root {
-      --bg: #0f172a; --card: #1e293b; --line: #334155; --text: #e2e8f0;
-      --muted: #94a3b8; --green: #22c55e; --red: #ef4444; --amber: #f59e0b;
-      --blue: #3b82f6; --slate: #64748b;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--bg); color: var(--text); padding: 24px;
-    }
-    h1 { font-size: 20px; margin: 0 0 4px; }
-    .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
-    .grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 14px; margin-bottom: 24px;
-    }
-    .card {
-      background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-      padding: 16px;
-    }
-    .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-    .card .value { font-size: 28px; font-weight: 700; margin-top: 6px; }
-    .card .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-    .badge {
-      display: inline-block; padding: 2px 8px; border-radius: 999px;
-      font-size: 11px; font-weight: 600; text-transform: uppercase;
-    }
-    .b-success { background: rgba(34,197,94,.15); color: var(--green); }
-    .b-error { background: rgba(239,68,68,.15); color: var(--red); }
-    .b-ignored { background: rgba(100,116,139,.2); color: var(--slate); }
-    .b-sent { background: rgba(34,197,94,.15); color: var(--green); }
-    .b-skipped { background: rgba(245,158,11,.15); color: var(--amber); }
-    .b-failed { background: rgba(239,68,68,.15); color: var(--red); }
-    .b-unknown { background: rgba(100,116,139,.2); color: var(--slate); }
-    .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-    select, button {
-      background: var(--card); color: var(--text); border: 1px solid var(--line);
-      border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer;
-    }
-    button:hover { border-color: var(--blue); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
-    tr:hover td { background: rgba(255,255,255,.02); }
-    .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--muted); }
-    .raw { color: var(--muted); font-size: 12px; max-width: 360px; white-space: pre-wrap; word-break: break-word; }
-    .alert {
-      border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; font-size: 14px;
-      border: 1px solid;
-    }
-    .alert-ok { background: rgba(34,197,94,.08); border-color: var(--green); color: var(--green); }
-    .alert-warn { background: rgba(239,68,68,.08); border-color: var(--red); color: var(--red); }
-    .tbl-wrap { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: auto; }
+    body { background: radial-gradient(1200px 600px at 80% -10%, rgba(59,130,246,.10), transparent 60%),
+                      radial-gradient(1000px 500px at -10% 10%, rgba(34,197,94,.08), transparent 55%),
+                      #0a0f1e; }
+    ::-webkit-scrollbar { height: 8px; width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+    .card { backdrop-filter: blur(6px); }
+    .fade-in { animation: fade .4s ease both; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .pulse-dot { box-shadow: 0 0 0 0 rgba(34,197,94,.6); animation: pulse 2s infinite; }
+    @keyframes pulse { 70% { box-shadow: 0 0 0 8px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
   </style>
 </head>
-<body>
-  <h1>📊 Dashboard Bot Nominasi CL</h1>
-  <div class="sub" id="updated">Memuat…</div>
+<body class="font-sans text-slate-200 min-h-screen antialiased">
 
-  <div id="emailAlert"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-  <div class="grid" id="cards"></div>
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-400 to-blue-500 grid place-items-center text-ink-950 text-xl font-black shadow-glow">CL</div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-tight text-white">Bot Nominasi CL</h1>
+          <p class="text-xs text-slate-400">Dashboard performa &amp; monitoring · PLTGU Cilegon</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="waStatus" class="flex items-center gap-2 rounded-full border border-ink-700 bg-ink-900/70 px-3 py-1.5 text-xs font-medium text-slate-300 card">
+          <span class="h-2 w-2 rounded-full bg-slate-500"></span>
+          <span>Memeriksa WhatsApp…</span>
+        </div>
+        <button id="refresh" class="inline-flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-800 px-3 py-1.5 text-sm font-medium text-slate-200 hover:border-blue-500 hover:text-white transition">
+          <svg id="refreshIcon" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M20 9A8 8 0 006.3 5.3M4 15a8 8 0 0013.7 3.7"/></svg>
+          Muat ulang
+        </button>
+      </div>
+    </header>
 
-  <div class="toolbar">
-    <label for="statusFilter" style="color:var(--muted);font-size:13px">Filter:</label>
-    <select id="statusFilter">
-      <option value="">Semua</option>
-      <option value="success">Sukses</option>
-      <option value="error">Gagal</option>
-      <option value="ignored">Diabaikan</option>
-    </select>
-    <select id="limit">
-      <option value="50">50 terbaru</option>
-      <option value="100" selected>100 terbaru</option>
-      <option value="250">250 terbaru</option>
-    </select>
-    <button id="refresh">↻ Muat ulang</button>
-  </div>
+    <p class="text-xs text-slate-500 mb-5" id="updated">Memuat data…</p>
 
-  <div class="tbl-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Waktu</th><th>Status</th><th>Tanggal</th>
-          <th>Swap</th><th>Stok</th><th>Total</th><th>Email</th><th>Detail</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
+    <!-- Email alert banner -->
+    <div id="emailAlert" class="mb-6"></div>
+
+    <!-- Stat cards -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="cards"></section>
+
+    <!-- Charts -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+      <div class="lg:col-span-2 rounded-2xl border border-ink-800 bg-ink-900/60 p-5 shadow-glow card fade-in">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-semibold text-white">Tren Aktivitas</h2>
+            <p class="text-xs text-slate-500">Nominasi diproses per hari</p>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-slate-400">
+            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-400"></span>Sukses</span>
+            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-rose-400"></span>Gagal</span>
+            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-slate-500"></span>Diabaikan</span>
+          </div>
+        </div>
+        <div class="h-64"><canvas id="trendChart"></canvas></div>
+      </div>
+      <div class="rounded-2xl border border-ink-800 bg-ink-900/60 p-5 shadow-glow card fade-in">
+        <div class="mb-4">
+          <h2 class="text-sm font-semibold text-white">Status Email</h2>
+          <p class="text-xs text-slate-500">Distribusi pengiriman</p>
+        </div>
+        <div class="h-48 flex items-center justify-center"><canvas id="emailChart"></canvas></div>
+        <div id="emailLegend" class="mt-4 space-y-2 text-xs"></div>
+      </div>
+    </section>
+
+    <!-- History table -->
+    <section class="rounded-2xl border border-ink-800 bg-ink-900/60 shadow-glow card fade-in overflow-hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-ink-800">
+        <div>
+          <h2 class="text-sm font-semibold text-white">Riwayat Pesan</h2>
+          <p class="text-xs text-slate-500">Log pemrosesan nominasi terbaru</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="statusFilter" class="rounded-lg border border-ink-700 bg-ink-800 px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+            <option value="">Semua status</option>
+            <option value="success">Sukses</option>
+            <option value="error">Gagal</option>
+            <option value="ignored">Diabaikan</option>
+          </select>
+          <select id="limit" class="rounded-lg border border-ink-700 bg-ink-800 px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+            <option value="50">50 terbaru</option>
+            <option value="100" selected>100 terbaru</option>
+            <option value="250">250 terbaru</option>
+          </select>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[11px] uppercase tracking-wider text-slate-500 border-b border-ink-800">
+              <th class="px-4 py-3 font-semibold">Waktu</th>
+              <th class="px-4 py-3 font-semibold">Status</th>
+              <th class="px-4 py-3 font-semibold">Tanggal</th>
+              <th class="px-4 py-3 font-semibold text-right">Swap</th>
+              <th class="px-4 py-3 font-semibold text-right">Stok</th>
+              <th class="px-4 py-3 font-semibold text-right">Total</th>
+              <th class="px-4 py-3 font-semibold">Email</th>
+              <th class="px-4 py-3 font-semibold">Detail</th>
+            </tr>
+          </thead>
+          <tbody id="rows" class="divide-y divide-ink-800/70"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="mt-8 text-center text-xs text-slate-600">
+      bot-cilegon · auto-refresh tiap 30 detik
+    </footer>
   </div>
 
   <script>
-    const fmtTime = (iso) => {
-      if (!iso) return '-';
-      const d = new Date(iso);
-      return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'medium' });
-    };
+    // ── Helpers ──────────────────────────────────────────
+    const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const fmtTime = (iso) => {
+      if (!iso) return '-';
+      return new Date(iso).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'medium' });
+    };
+    const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+    const fmtUptime = (sec) => {
+      sec = Math.floor(sec || 0);
+      const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60);
+      if (d) return `${d}h ${h}j`;
+      if (h) return `${h}j ${m}m`;
+      return `${m}m`;
+    };
 
-    function card(label, value, hint) {
-      return '<div class="card"><div class="label">' + label + '</div>' +
-        '<div class="value">' + value + '</div>' +
-        (hint ? '<div class="hint">' + hint + '</div>' : '') + '</div>';
+    const STATUS_BADGE = {
+      success: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30',
+      error: 'bg-rose-500/15 text-rose-300 ring-rose-500/30',
+      ignored: 'bg-slate-500/15 text-slate-300 ring-slate-500/30',
+      unknown: 'bg-slate-500/15 text-slate-300 ring-slate-500/30',
+    };
+    const EMAIL_BADGE = {
+      sent: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30',
+      skipped: 'bg-amber-500/15 text-amber-300 ring-amber-500/30',
+      failed: 'bg-rose-500/15 text-rose-300 ring-rose-500/30',
+      unknown: 'bg-slate-500/15 text-slate-300 ring-slate-500/30',
+    };
+
+    function badge(text, cls) {
+      return `<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${cls}">${esc(text)}</span>`;
     }
 
-    function renderStats(s) {
-      document.getElementById('updated').textContent =
-        'Terakhir aktivitas: ' + fmtTime(s.lastTimestamp) + ' • Total entri log: ' + s.total;
+    // ── Stat cards ───────────────────────────────────────
+    const ICONS = {
+      processed: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+      rate: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M21 7v6h-6"/>',
+      email: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M3 8v10a2 2 0 002 2h14a2 2 0 002-2V8M3 8l9-4 9 4"/>',
+      dup: '<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8a2 2 0 012 2v8m-2 4H6a2 2 0 01-2-2V7m4-4h8a2 2 0 012 2v2"/>',
+    };
+    function statCard({ label, value, hint, tone, icon }) {
+      const toneMap = {
+        blue: 'from-blue-500/20 to-blue-500/5 text-blue-300',
+        green: 'from-emerald-500/20 to-emerald-500/5 text-emerald-300',
+        amber: 'from-amber-500/20 to-amber-500/5 text-amber-300',
+        slate: 'from-slate-500/20 to-slate-500/5 text-slate-300',
+      };
+      return `
+        <div class="rounded-2xl border border-ink-800 bg-ink-900/60 p-4 shadow-glow card fade-in">
+          <div class="flex items-start justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">${label}</span>
+            <span class="h-8 w-8 rounded-lg bg-gradient-to-br ${toneMap[tone]} grid place-items-center">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg>
+            </span>
+          </div>
+          <div class="mt-2 text-2xl font-extrabold text-white">${value}</div>
+          <div class="mt-1 text-xs text-slate-500">${hint}</div>
+        </div>`;
+    }
 
-      const cards = [
-        card('Nominasi Diproses', s.processed, s.success + ' sukses · ' + s.error + ' gagal'),
-        card('Success Rate', s.successRate + '%', 'dari nominasi diproses'),
-        card('Email Terkirim', s.email.sent, s.email.failed + ' gagal · ' + s.email.skipped + ' dilewati'),
-        card('Email Delivery', s.emailDeliveryRate == null ? '—' : s.emailDeliveryRate + '%',
-          s.emailAttempts + ' percobaan kirim'),
-        card('Duplikat Diabaikan', s.duplicate, 'anti-duplikat'),
-        card('Gagal Balas WA', s.sendFailed, 'send_failed'),
-      ];
-      document.getElementById('cards').innerHTML = cards.join('');
+    function renderCards(s, meta) {
+      $('cards').innerHTML = [
+        statCard({ label: 'Nominasi Diproses', value: s.processed, hint: `${s.success} sukses · ${s.error} gagal`, tone: 'blue', icon: ICONS.processed }),
+        statCard({ label: 'Success Rate', value: s.successRate + '%', hint: 'dari nominasi diproses', tone: 'green', icon: ICONS.rate }),
+        statCard({ label: 'Email Terkirim', value: s.email.sent, hint: `${s.email.failed} gagal · ${s.email.skipped} dilewati`, tone: 'amber', icon: ICONS.email }),
+        statCard({ label: 'Uptime Bot', value: fmtUptime(meta && meta.uptime), hint: `${s.duplicate} duplikat diabaikan`, tone: 'slate', icon: ICONS.dup }),
+      ].join('');
+    }
 
-      const alertEl = document.getElementById('emailAlert');
-      const totalEmailFail = s.email.failed + s.emailFailedEvents;
+    function renderEmailAlert(s) {
+      const el = $('emailAlert');
+      const totalFail = s.email.failed + s.emailFailedEvents;
+      const box = (cls, icon, msg) =>
+        `<div class="flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${cls} fade-in">
+           <span class="text-lg">${icon}</span><span>${msg}</span></div>`;
       if (s.emailAttempts === 0 && s.email.skipped > 0) {
-        alertEl.innerHTML = '<div class="alert alert-warn">⚠️ Email dinonaktifkan / dilewati (' +
-          s.email.skipped + ' nominasi). Aktifkan EMAIL_ENABLED untuk mulai mengirim.</div>';
-      } else if (totalEmailFail === 0 && s.emailAttempts > 0) {
-        alertEl.innerHTML = '<div class="alert alert-ok">✅ Semua email terkirim (' +
-          s.email.sent + '/' + s.emailAttempts + '). Tidak ada kegagalan.</div>';
-      } else if (totalEmailFail > 0) {
-        alertEl.innerHTML = '<div class="alert alert-warn">⚠️ Ada ' + totalEmailFail +
-          ' email GAGAL terkirim. Mohon cek manual.</div>';
+        el.innerHTML = box('border-amber-500/30 bg-amber-500/10 text-amber-200', '⚠️',
+          `Email dinonaktifkan / dilewati (${s.email.skipped} nominasi). Aktifkan <code class="font-mono">EMAIL_ENABLED</code> untuk mulai mengirim.`);
+      } else if (totalFail === 0 && s.emailAttempts > 0) {
+        el.innerHTML = box('border-emerald-500/30 bg-emerald-500/10 text-emerald-200', '✅',
+          `Semua email terkirim (${s.email.sent}/${s.emailAttempts}). Tidak ada kegagalan.`);
+      } else if (totalFail > 0) {
+        el.innerHTML = box('border-rose-500/30 bg-rose-500/10 text-rose-200', '⚠️',
+          `Ada ${totalFail} email GAGAL terkirim. Mohon cek manual.`);
       } else {
-        alertEl.innerHTML = '';
+        el.innerHTML = '';
       }
     }
 
+    // ── Charts ───────────────────────────────────────────
+    let trendChart, emailChart;
+
+    function renderTrend(ts) {
+      const ctx = $('trendChart').getContext('2d');
+      const labels = ts.map((d) => fmtDay(d.date));
+      const mk = (arr, color) => ({
+        data: arr, borderColor: color, backgroundColor: color + '22',
+        tension: .35, fill: true, borderWidth: 2, pointRadius: 2, pointHoverRadius: 4,
+      });
+      const cfg = {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Sukses', ...mk(ts.map((d) => d.success), '#34d399') },
+            { label: 'Gagal', ...mk(ts.map((d) => d.error), '#fb7185') },
+            { label: 'Diabaikan', ...mk(ts.map((d) => d.ignored), '#94a3b8') },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, padding: 10 } },
+          scales: {
+            x: { grid: { color: 'rgba(148,163,184,.08)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+            y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,.08)' }, ticks: { color: '#64748b', precision: 0, font: { size: 10 } } },
+          },
+        },
+      };
+      if (trendChart) { trendChart.data = cfg.data; trendChart.update(); }
+      else trendChart = new Chart(ctx, cfg);
+    }
+
+    function renderEmailChart(bd) {
+      const ctx = $('emailChart').getContext('2d');
+      const colors = { sent: '#34d399', skipped: '#fbbf24', failed: '#fb7185' };
+      const total = bd.reduce((a, b) => a + b.value, 0);
+      const data = {
+        labels: bd.map((b) => b.label),
+        datasets: [{
+          data: bd.map((b) => b.value),
+          backgroundColor: bd.map((b) => colors[b.key]),
+          borderColor: '#0f172a', borderWidth: 3, hoverOffset: 6,
+        }],
+      };
+      const cfg = {
+        type: 'doughnut',
+        data,
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '68%',
+          plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1 } },
+        },
+      };
+      if (emailChart) { emailChart.data = data; emailChart.update(); }
+      else emailChart = new Chart(ctx, cfg);
+
+      $('emailLegend').innerHTML = bd.map((b) => {
+        const pct = total ? Math.round((b.value / total) * 100) : 0;
+        return `<div class="flex items-center justify-between">
+            <span class="flex items-center gap-2 text-slate-400">
+              <span class="h-2.5 w-2.5 rounded-full" style="background:${colors[b.key]}"></span>${b.label}
+            </span>
+            <span class="font-semibold text-slate-200">${b.value} <span class="text-slate-500 font-normal">(${pct}%)</span></span>
+          </div>`;
+      }).join('');
+      if (!total) $('emailLegend').innerHTML = '<p class="text-slate-500 text-center py-2">Belum ada aktivitas email.</p>';
+    }
+
+    // ── Table ────────────────────────────────────────────
     function renderRows(history) {
       if (!history.length) {
-        document.getElementById('rows').innerHTML =
-          '<tr><td colspan="8" style="color:var(--muted)">Belum ada data.</td></tr>';
+        $('rows').innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-slate-500">Belum ada data. Menunggu pesan nominasi masuk…</td></tr>';
         return;
       }
-      document.getElementById('rows').innerHTML = history.map((h) => {
-        const statusBadge = '<span class="badge b-' + esc(h.status) + '">' + esc(h.status) + '</span>';
-        const emailBadge = h.email
-          ? '<span class="badge b-' + esc(h.email) + '">' + esc(h.email) + '</span>'
-          : '<span class="mono">-</span>';
-        let detail = '';
-        if (h.status === 'error' && h.errors) detail = '<div class="raw">' + h.errors.map(esc).join('<br>') + '</div>';
-        else if (h.status === 'ignored') detail = '<span class="mono">' + esc(h.reason || '') + '</span>';
-        else if (h.raw) detail = '<div class="raw">' + esc(h.raw.split('\n')[0]) + '</div>';
-        return '<tr>' +
-          '<td class="mono">' + fmtTime(h.timestamp) + '</td>' +
-          '<td>' + statusBadge + '</td>' +
-          '<td>' + esc(h.date || '-') + '</td>' +
-          '<td>' + (h.swapping == null ? '-' : esc(h.swapping)) + '</td>' +
-          '<td>' + (h.stokLNG == null ? '-' : esc(h.stokLNG)) + '</td>' +
-          '<td>' + (h.total == null ? '-' : '<b>' + esc(h.total) + '</b>') + '</td>' +
-          '<td>' + emailBadge + '</td>' +
-          '<td>' + detail + '</td>' +
-        '</tr>';
+      $('rows').innerHTML = history.map((h) => {
+        const st = badge(h.status, STATUS_BADGE[h.status] || STATUS_BADGE.unknown);
+        const em = h.email ? badge(h.email, EMAIL_BADGE[h.email] || EMAIL_BADGE.unknown) : '<span class="text-slate-600">-</span>';
+        let detail = '<span class="text-slate-600">-</span>';
+        if (h.status === 'error' && h.errors) detail = `<span class="text-rose-300/80 text-xs">${h.errors.map(esc).join(', ')}</span>`;
+        else if (h.status === 'ignored') detail = `<span class="font-mono text-xs text-slate-500">${esc(h.reason || '')}</span>`;
+        else if (h.raw) detail = `<span class="text-slate-500 text-xs">${esc(h.raw.split('\n')[0])}</span>`;
+        const num = (v) => v == null ? '<span class="text-slate-600">-</span>' : esc(v);
+        return `<tr class="hover:bg-white/[.02] transition">
+            <td class="px-4 py-3 font-mono text-xs text-slate-400 whitespace-nowrap">${fmtTime(h.timestamp)}</td>
+            <td class="px-4 py-3">${st}</td>
+            <td class="px-4 py-3 text-slate-300 whitespace-nowrap">${esc(h.date || '-')}</td>
+            <td class="px-4 py-3 text-right text-slate-300">${num(h.swapping)}</td>
+            <td class="px-4 py-3 text-right text-slate-300">${num(h.stokLNG)}</td>
+            <td class="px-4 py-3 text-right font-semibold text-white">${num(h.total)}</td>
+            <td class="px-4 py-3">${em}</td>
+            <td class="px-4 py-3 max-w-xs truncate">${detail}</td>
+          </tr>`;
       }).join('');
     }
 
+    // ── WhatsApp status pill ─────────────────────────────
+    async function loadWaStatus() {
+      try {
+        const r = await fetch('/api/waha-status');
+        const d = await r.json();
+        const el = $('waStatus');
+        const map = {
+          WORKING: ['bg-emerald-400 pulse-dot', 'Terhubung', 'text-emerald-300'],
+          SCAN_QR_CODE: ['bg-amber-400', 'Menunggu scan QR', 'text-amber-300'],
+          STARTING: ['bg-blue-400', 'Menghubungkan…', 'text-blue-300'],
+          STOPPED: ['bg-slate-500', 'Berhenti', 'text-slate-300'],
+        };
+        const [dot, label, txt] = map[d.status] || ['bg-rose-500', d.status || 'Tidak terhubung', 'text-rose-300'];
+        const me = d.me && d.me.pushName ? ` · ${esc(d.me.pushName)}` : '';
+        el.className = `flex items-center gap-2 rounded-full border border-ink-700 bg-ink-900/70 px-3 py-1.5 text-xs font-medium ${txt} card`;
+        el.innerHTML = `<span class="h-2 w-2 rounded-full ${dot}"></span><span>WhatsApp: ${label}${me}</span>`;
+      } catch {
+        $('waStatus').innerHTML = '<span class="h-2 w-2 rounded-full bg-rose-500"></span><span>WhatsApp: tidak terjangkau</span>';
+      }
+    }
+
+    // ── Loader ───────────────────────────────────────────
+    let loading = false;
     async function load() {
-      const status = document.getElementById('statusFilter').value;
-      const limit = document.getElementById('limit').value;
+      if (loading) return;
+      loading = true;
+      const icon = $('refreshIcon');
+      icon.classList.add('animate-spin');
+      const status = $('statusFilter').value;
+      const limit = $('limit').value;
       const q = new URLSearchParams({ limit });
       if (status) q.set('status', status);
       try {
         const res = await fetch('/api/dashboard?' + q.toString());
         const data = await res.json();
-        renderStats(data.stats);
-        renderRows(data.history);
+        renderCards(data.stats, data.meta);
+        renderEmailAlert(data.stats);
+        renderTrend(data.timeseries || []);
+        renderEmailChart(data.emailBreakdown || []);
+        renderRows(data.history || []);
+        $('updated').textContent =
+          'Aktivitas terakhir: ' + fmtTime(data.stats.lastTimestamp) + ' · ' + data.stats.total + ' entri log · diperbarui ' + fmtTime(data.meta && data.meta.now);
       } catch (err) {
-        document.getElementById('updated').textContent = 'Gagal memuat data: ' + err.message;
+        $('updated').textContent = 'Gagal memuat data: ' + err.message;
+      } finally {
+        setTimeout(() => icon.classList.remove('animate-spin'), 400);
+        loading = false;
       }
     }
 
-    document.getElementById('refresh').addEventListener('click', load);
-    document.getElementById('statusFilter').addEventListener('change', load);
-    document.getElementById('limit').addEventListener('change', load);
+    $('refresh').addEventListener('click', () => { load(); loadWaStatus(); });
+    $('statusFilter').addEventListener('change', load);
+    $('limit').addEventListener('change', load);
     load();
-    setInterval(load, 30000); // auto-refresh tiap 30 detik
+    loadWaStatus();
+    setInterval(load, 30000);
+    setInterval(loadWaStatus, 15000);
   </script>
 </body>
 </html>

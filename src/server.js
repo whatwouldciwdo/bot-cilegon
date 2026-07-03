@@ -39,20 +39,47 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'dashboard.html'));
 });
 
-// ── API data dashboard (stats + history) ──
-// /api/dashboard?limit=100&status=success
+// ── API data dashboard (stats + history + timeseries) ──
+// /api/dashboard?limit=100&status=success&days=14
 app.get('/api/dashboard', async (req, res) => {
   try {
     const data = await getDashboardData({
       limit: req.query.limit,
       status: req.query.status,
+      days: req.query.days,
     });
     data.stats.emailEnabled = isEmailEnabled();
+    data.meta = {
+      uptime: process.uptime(),
+      now: new Date().toISOString(),
+      version: 2,
+    };
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+// ── API status koneksi WAHA (untuk indikator sesi WhatsApp di dashboard) ──
+app.get('/api/waha-status', async (req, res) => {
+  try {
+    const s = await waha.getSessionStatus();
+    if (s && s.error) {
+      return res.json({ connected: false, status: 'UNREACHABLE', error: s.error });
+    }
+    const status = (s && s.status) || 'UNKNOWN';
+    res.json({
+      connected: status === 'WORKING',
+      status,
+      session: (s && s.name) || config.waha.session,
+      me: (s && s.me) || null,
+      engine: (s && s.engine && s.engine.state) || null,
+    });
+  } catch (err) {
+    res.json({ connected: false, status: 'ERROR', error: err.message });
+  }
+});
+
 
 
 

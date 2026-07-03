@@ -162,12 +162,57 @@ function buildHistory(entries, opts = {}) {
   }));
 }
 
-/** Kumpulkan stats + history sekaligus (dipakai endpoint API). */
+/**
+ * Bangun deret waktu harian (untuk grafik tren).
+ * @param {object[]} entries
+ * @param {number} [days=14] jumlah hari terakhir yang ditampilkan
+ */
+function buildTimeSeries(entries, days = 14) {
+  const buckets = new Map(); // 'YYYY-MM-DD' -> { success, error, ignored }
+  for (const e of entries) {
+    if (!e.timestamp) continue;
+    const day = String(e.timestamp).slice(0, 10);
+    if (!buckets.has(day)) buckets.set(day, { success: 0, error: 0, ignored: 0 });
+    const b = buckets.get(day);
+    if (e.status === 'success') b.success += 1;
+    else if (e.status === 'error') b.error += 1;
+    else if (e.status === 'ignored') b.ignored += 1;
+  }
+
+  // isi rentang hari berurutan (termasuk hari kosong) sampai hari ini
+  const out = [];
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const b = buckets.get(key) || { success: 0, error: 0, ignored: 0 };
+    out.push({ date: key, ...b });
+  }
+  return out;
+}
+
+/**
+ * Distribusi status email untuk grafik donat.
+ * @param {object} stats hasil computeStats
+ */
+function emailBreakdown(stats) {
+  return [
+    { label: 'Terkirim', key: 'sent', value: stats.email.sent },
+    { label: 'Dilewati', key: 'skipped', value: stats.email.skipped },
+    { label: 'Gagal', key: 'failed', value: stats.email.failed + stats.emailFailedEvents },
+  ];
+}
+
+/** Kumpulkan stats + history + timeseries sekaligus (dipakai endpoint API). */
 async function getDashboardData(opts = {}) {
   const entries = await readEntries();
+  const stats = computeStats(entries);
   return {
-    stats: computeStats(entries),
+    stats,
     history: buildHistory(entries, opts),
+    timeseries: buildTimeSeries(entries, opts.days ? parseInt(opts.days, 10) : 14),
+    emailBreakdown: emailBreakdown(stats),
   };
 }
 
@@ -175,6 +220,8 @@ module.exports = {
   readEntries,
   computeStats,
   buildHistory,
+  buildTimeSeries,
+  emailBreakdown,
   getDashboardData,
   emailStatusOf,
 };

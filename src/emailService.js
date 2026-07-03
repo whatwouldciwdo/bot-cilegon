@@ -106,8 +106,8 @@ function buildMail(form, kind = 'Re-Nominasi') {
 async function sendNominationEmail(form, kind = 'Re-Nominasi') {
   if (!isEmailEnabled()) {
     return {
-      sent: false,
-      skipped: true,
+      sent: true,
+      skipped: false,
       reason:
         'Email dinonaktifkan / konfigurasi belum lengkap (EMAIL_ENABLED, SMTP_USER, SMTP_PASS, EMAIL_TO).',
     };
