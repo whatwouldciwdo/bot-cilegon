@@ -1,15 +1,9 @@
 'use strict';
 
 /**
- * Langkah 5-7 — Cari baris unit CL, ekstrak nilai GSA/Swap/Stok, hitung total.
- *
- * Contoh baris yang dicari:
- *   "CL : GSA 0 + swap 32 + stok 0"
- *
- * Aturan:
- * - Hanya baris yang DIMULAI dengan "CL" (bukan MTW, MK, TP, atau Total).
- * - Baris "Total : ... stok CL 0 ..." TIDAK dianggap baris unit CL.
- * - Toleran variasi: "swap 32", "Swap : 32", "swap32".
+ * Ekstraksi baris unit CL: cari baris, baca nilai GSA/Swap/Stok, hitung total.
+ * Contoh baris: "CL : GSA 0 + swap 32 + stok 0".
+ * Hanya baris yang diawali "CL" (bukan MTW/MK/TP/Total) yang diproses.
  */
 
 /**
@@ -28,7 +22,6 @@ function readValue(line, label) {
 }
 
 /**
- * Temukan baris unit CL.
  * @param {string} text teks ternormalisasi
  * @returns {string|null}
  */
@@ -37,9 +30,7 @@ function findCLLine(text) {
   const lines = text.split('\n');
   for (const line of lines) {
     const trimmed = line.trim();
-    // baris yang DIMULAI dengan CL, diikuti spasi/":" (bukan bagian kata lain)
     if (/^CL\b\s*:?/i.test(trimmed)) {
-      // pastikan ini bukan baris Total yang kebetulan diawali sesuatu lain
       if (/^total\b/i.test(trimmed)) continue;
       return trimmed;
     }
@@ -66,8 +57,7 @@ function extractCL(text) {
   const swap = readValue(line, 'swap');
   const stok = readValue(line, 'stok');
 
-  // Total = penjumlahan komponen yang terbaca (yang null dianggap 0
-  // HANYA untuk perhitungan, tapi status keterbacaan dijaga di validate.js)
+  // total hanya dihitung jika minimal satu komponen terbaca; null dianggap 0
   const parts = [gsa, swap, stok];
   const anyRead = parts.some((v) => v !== null);
   const total = anyRead

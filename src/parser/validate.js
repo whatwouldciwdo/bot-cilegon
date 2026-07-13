@@ -1,9 +1,7 @@
 'use strict';
 
 /**
- * Langkah 8 — Validasi hasil parsing.
- * Mengembalikan { valid, errors } dengan pesan error yang SPESIFIK
- * supaya operator tahu persis apa yang salah.
+ * Validasi hasil parsing dengan pesan error spesifik untuk operator.
  *
  * @param {object} parsed
  * @param {{formatted:string}|null} parsed.date

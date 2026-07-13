@@ -1,11 +1,7 @@
 'use strict';
 
 /**
- * Langkah 9 & 10/14 — Buat form nominasi & teks balasan WhatsApp.
- */
-
-/**
- * Bangun objek form nominasi (siap dipakai email di Fase 2).
+ * Bangun objek form nominasi.
  * @param {{formatted:string}} date
  * @param {{gsa:number|null, swap:number|null, stok:number|null, total:number|null}} cl
  */
@@ -35,7 +31,7 @@ function formText(form) {
 }
 
 /**
- * Balasan SUKSES untuk WhatsApp.
+ * Balasan sukses untuk WhatsApp.
  * @param {object} form
  * @param {boolean} withSummary  tampilkan ringkasan angka atau tidak
  */
@@ -51,7 +47,7 @@ function successReply(form, withSummary = true, kind = 'Re-Nominasi') {
 }
 
 /**
- * Balasan GAGAL untuk WhatsApp, menampilkan alasan spesifik.
+ * Balasan gagal untuk WhatsApp, menampilkan alasan spesifik.
  * @param {string[]} errors
  */
 function errorReply(errors, kind = 'Re-Nominasi') {

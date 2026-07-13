@@ -33,16 +33,13 @@ const config = {
   replyWithSummary: parseBool(process.env.REPLY_WITH_SUMMARY, true),
   replyAsQuote: parseBool(process.env.REPLY_AS_QUOTE, true),
 
-  // ── Email (Fase 2) ─────────────────────────────────────
   email: {
-    // master switch: email hanya dikirim jika true
     enabled: parseBool(process.env.EMAIL_ENABLED, false),
-    // SMTP Office 365 (Microsoft 365)
     host: process.env.SMTP_HOST || 'smtp.office365.com',
     port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: parseBool(process.env.SMTP_SECURE, false), // 587 = STARTTLS (false)
-    user: process.env.SMTP_USER || '', // email lengkap @plnindonesiapower.co.id
-    pass: process.env.SMTP_PASS || '', // password mailbox / app password
+    secure: parseBool(process.env.SMTP_SECURE, false),
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
     from: process.env.EMAIL_FROM || process.env.SMTP_USER || '',
     to: parseList(process.env.EMAIL_TO),
     cc: parseList(process.env.EMAIL_CC),

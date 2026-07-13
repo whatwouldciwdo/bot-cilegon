@@ -1,12 +1,8 @@
 'use strict';
 
 /**
- * Langkah 4 — Ambil tanggal nominasi.
- * Mendeteksi pola tanggal Indonesia, contoh:
- *   "Nominasi PGN 24 Juni 2026", "ReNominasi PGN 5 Jan 2026"
- *
- * Mengembalikan objek { raw, day, month, year, formatted } atau null.
- * formatted memakai gaya "24-Jun-26" sesuai form nominasi.
+ * Ambil tanggal nominasi dari teks (pola tanggal Indonesia).
+ * Contoh: "Nominasi PGN 24 Juni 2026" -> { day, month, year, formatted:"24-Jun-26" }.
  */
 
 const MONTHS = {
@@ -30,13 +26,13 @@ const MONTH_SHORT = [
 ];
 
 /**
- * @param {string} text  teks (sebaiknya sudah dinormalisasi)
+ * @param {string} text
  * @returns {{raw:string, day:number, month:number, year:number, formatted:string}|null}
  */
 function extractDate(text) {
   if (typeof text !== 'string' || !text) return null;
 
-  // Bangun alternasi nama bulan, terpanjang dulu agar "juni" menang atas "jun"
+  // terpanjang dulu agar "juni" menang atas "jun"
   const monthNames = Object.keys(MONTHS).sort((a, b) => b.length - a.length);
   const monthPattern = monthNames.join('|');
 
@@ -51,7 +47,7 @@ function extractDate(text) {
   const day = parseInt(m[1], 10);
   const month = MONTHS[m[2].toLowerCase()];
   let year = parseInt(m[3], 10);
-  if (year < 100) year += 2000; // 26 -> 2026
+  if (year < 100) year += 2000;
 
   if (
     Number.isNaN(day) || day < 1 || day > 31 ||

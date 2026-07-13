@@ -1,8 +1,7 @@
 'use strict';
 
 /**
- * Anti-duplikat — mencegah satu pesan diproses & dibalas lebih dari sekali.
- * Menyimpan message ID di memori dengan kapasitas terbatas (LRU sederhana).
+ * Anti-duplikat: simpan message ID di memori (LRU sederhana, kapasitas terbatas).
  */
 
 const MAX_ENTRIES = 1000;

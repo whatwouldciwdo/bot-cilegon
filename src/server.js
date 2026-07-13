@@ -1,8 +1,8 @@
 'use strict';
 
 /**
- * Server webhook bot — menerima event dari WAHA, memproses pesan nominasi,
- * dan membalas via WhatsApp. Implementasi flow 14 langkah (Fase 1).
+ * Server webhook bot: menerima event WAHA, memproses pesan nominasi,
+ * mengirim email, dan membalas via WhatsApp.
  */
 
 const express = require('express');
@@ -20,7 +20,7 @@ const path = require('path');
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
-// ── Healthcheck ──────────────────────────────────────────
+// Healthcheck
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
@@ -29,17 +29,16 @@ app.get('/', (req, res) => {
   res.json({ name: 'bot-cilegon', phase: 2, status: 'running', email: isEmailEnabled(), dashboard: '/dashboard' });
 });
 
-// ── Diagnosa SMTP (cek koneksi/kredensial tanpa kirim email) ──
+// Diagnosa SMTP (cek koneksi/kredensial tanpa kirim email)
 app.get('/email-test', async (req, res) => {
   const result = await verifyConnection();
   res.status(result.ok ? 200 : 500).json(result);
 });
-// ── Dashboard: halaman HTML tracking history & performa bot ──
+// Dashboard
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'dashboard.html'));
 });
 
-// ── API data dashboard (stats + history + timeseries) ──
 // /api/dashboard?limit=100&status=success&days=14
 app.get('/api/dashboard', async (req, res) => {
   try {
@@ -60,7 +59,7 @@ app.get('/api/dashboard', async (req, res) => {
   }
 });
 
-// ── API status koneksi WAHA (untuk indikator sesi WhatsApp di dashboard) ──
+// Status koneksi WAHA
 app.get('/api/waha-status', async (req, res) => {
   try {
     const s = await waha.getSessionStatus();
@@ -79,11 +78,6 @@ app.get('/api/waha-status', async (req, res) => {
     res.json({ connected: false, status: 'ERROR', error: err.message });
   }
 });
-
-
-
-
-// ── Preview lampiran Excel (contoh) ──
 // /xlsx-preview?date=26 Juni 2026&swap=37&stok=0
 app.get('/xlsx-preview', async (req, res) => {
   try {
@@ -106,15 +100,11 @@ app.get('/xlsx-preview', async (req, res) => {
   }
 });
 
-// ── Helper ───────────────────────────────────────────────
+
 function containsKeyword(text) {
   const lower = (text || '').toLowerCase();
 
-  // Pola fleksibel untuk variasi nyata:
-  // - "ReNominasi PGN"
-  // - "ReNominasi-2 PGN"
-  // - "Renominasi 2 PGN"
-  // - "Nominasi PGN"
+  // Terima variasi ReNominasi/Re Nominasi/Nominasi selama mengandung PGN.
   const hasPgn = /\bpgn\b/i.test(lower);
   const hasNomination = /\b(re\s*[- ]?\s*)?nominasi\b/i.test(lower);
   if (hasPgn && hasNomination) return true;
@@ -143,7 +133,7 @@ function extractMessage(reqBody) {
   };
 }
 
-// ── Webhook ──────────────────────────────────────────────
+// Webhook
 app.post('/webhook', async (req, res) => {
   // Selalu balas 200 cepat supaya WAHA tidak retry berulang.
   res.sendStatus(200);
@@ -151,16 +141,16 @@ app.post('/webhook', async (req, res) => {
   try {
     const msg = extractMessage(req.body);
 
-    // 1. Hanya proses event pesan masuk
+    // Hanya proses event pesan masuk.
     if (msg.event && msg.event !== 'message') return;
-    if (msg.fromMe) return; // abaikan pesan dari bot sendiri
+    if (msg.fromMe) return;
     if (!msg.body) return;
 
     console.log(
       `[IN] session=${msg.session || '-'} chat=${msg.chatId} text=${msg.body.slice(0, 80).replace(/\n/g, ' | ')}`
     );
 
-    // 2. Filter: grup target (jika diset) + kata kunci
+    // Filter grup target (jika diset) dan kata kunci.
     if (config.targetGroupId && msg.chatId !== config.targetGroupId) {
       console.log(`[SKIP] chat bukan target: ${msg.chatId}`);
       return;
@@ -170,18 +160,18 @@ app.post('/webhook', async (req, res) => {
       return;
     }
 
-    // 3. Anti-duplikat
+    // Anti-duplikat.
     if (isDuplicate(msg.id)) {
       logIgnored({ reason: 'duplicate', messageId: msg.id, chatId: msg.chatId });
       return;
     }
     markProcessed(msg.id);
 
-    // 4-8. Parsing + validasi
+    // Parsing dan validasi.
     const parsed = parseNomination(msg.body);
 
     if (!parsed.valid) {
-      // Balas error spesifik + log + STOP
+      // Balas error spesifik dan hentikan proses.
       const reply = errorReply(parsed.errors, parsed.kind);
       await safeReply(msg, reply);
       logError({
@@ -193,10 +183,10 @@ app.post('/webhook', async (req, res) => {
       return;
     }
 
-    // 9. Buat form nominasi
+    // Buat form nominasi.
     const form = buildForm(parsed.date, parsed.cl);
 
-    // 10-12. Kirim email (jika diaktifkan di .env)
+    // Kirim email jika diaktifkan di .env.
     const emailResult = await sendNominationEmail(form, parsed.kind);
     if (emailResult.sent) {
       console.log(`[EMAIL] terkirim: ${emailResult.messageId}`);
@@ -211,7 +201,7 @@ app.post('/webhook', async (req, res) => {
       });
     }
 
-    // 13. Log sukses
+    // Log sukses.
     logSuccess({
       messageId: msg.id,
       chatId: msg.chatId,
@@ -221,7 +211,7 @@ app.post('/webhook', async (req, res) => {
       raw: msg.body,
     });
 
-    // 14. Balas WhatsApp
+    // Balas WhatsApp.
     let reply = successReply(form, config.replyWithSummary, parsed.kind);
     if (emailResult.sent === false && !emailResult.skipped) {
       reply += '\n⚠️ (Catatan: email gagal dikirim, mohon cek manual)';
@@ -252,7 +242,7 @@ async function safeReply(msg, text) {
   }
 }
 
-// ── Start ────────────────────────────────────────────────
+// Start
 app.listen(config.port, () => {
   console.log(`bot-cilegon listening on port ${config.port}`);
   console.log(`WAHA: ${config.waha.url} (session: ${config.waha.session})`);

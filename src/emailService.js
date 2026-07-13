@@ -1,21 +1,11 @@
 'use strict';
 
 /**
- * Langkah 10-12 — Email service via SMTP Microsoft 365 (Office 365).
+ * Email service via SMTP (Gmail / Office 365). Konfigurasi dari .env.
+ * Email hanya dikirim jika EMAIL_ENABLED=true dan kredensial lengkap.
  *
- * Pengaturan SMTP Office 365:
- *   host   : smtp.office365.com
- *   port   : 587  (STARTTLS, secure=false)
- *   user   : email lengkap, mis. botgas@plnindonesiapower.co.id
- *   pass   : password mailbox (atau App Password jika MFA aktif)
- *
- * CATATAN PENTING:
- *   Microsoft menonaktifkan "SMTP AUTH" (basic auth) secara default.
- *   Jika login gagal dengan error 5.7.139 / "SmtpClientAuthentication is
- *   disabled", minta admin M365 mengaktifkan "Authenticated SMTP" untuk
- *   mailbox bot, atau gunakan Microsoft Graph API.
- *
- * Email hanya dikirim jika EMAIL_ENABLED=true di .env.
+ * Catatan Office 365: SMTP AUTH (basic auth) dinonaktifkan default.
+ * Jika error 5.7.139, minta admin M365 aktifkan "Authenticated SMTP".
  */
 
 const nodemailer = require('nodemailer');

@@ -1,25 +1,16 @@
 'use strict';
 
 /**
- * Generator lampiran Excel — "Form Nominasi Harian IP PLTGU Cilegon (LNG)".
- *
- * PENDEKATAN TEMPLATE (hasil PERSIS):
- *   Memuat file asli (templates/form_lng_template.xlsx) lalu HANYA mengisi
- *   sel input. Seluruh layout, merge cell, font, border, warna, dan format
- *   angka (0,00) tetap identik dengan form asli.
+ * Generator lampiran Excel "Form Nominasi Harian IP PLTGU Cilegon (LNG)".
+ * Memuat template asli lalu mengisi sel input saja; layout & formula tetap.
  *
  * Sel yang diisi bot:
- *   - E4              : tanggal pengajuan = tanggal efektif - 1 (Date)
- *                       -> E6 (efektif), F17/G17/H17 (forecast), D51:G51 (ttd)
- *                          otomatis mengikuti via formula di template.
- *   - F20:F43         : SWAP LNG per jam (24 baris)
- *   - G20:G43         : STOCK LNG PLN EPI per jam (24 baris)
- *   - H20:H43, F13/G13/H13, F44/G44/H44 : dihitung formula template otomatis.
+ *   E4        : tanggal pengajuan (= tanggal efektif - 1)
+ *   F20:F43   : SWAP LNG per jam (24 baris)
+ *   G20:G43   : STOCK LNG PLN EPI per jam (24 baris)
+ * Sel turunan (H, total, average, tanggal efektif) dihitung formula template.
  *
- * CATATAN DATA:
- *   Profil per jam tidak ada di pesan WA. Default = FLAT (tiap jam = nilai
- *   harian) sehingga Average per Day = nilai harian. Bisa ditimpa via
- *   opts.hourly (array 24 objek {swap, stok}).
+ * Profil per jam default flat (tiap jam = nilai harian), bisa ditimpa opts.hourly.
  */
 
 const path = require('path');

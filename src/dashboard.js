@@ -1,11 +1,7 @@
 'use strict';
 
 /**
- * Modul Dashboard — membaca log JSON Lines (logs/nominasi.jsonl),
- * lalu menghasilkan agregasi untuk tracking history, performa bot,
- * dan status pengiriman email.
- *
- * Tidak menambah dependency baru: cukup fs + JSON parsing.
+ * Agregasi dashboard dari log JSON Lines (history, performa bot, status email).
  */
 
 const fs = require('fs');
@@ -34,7 +30,7 @@ function readEntries() {
       try {
         entries.push(JSON.parse(trimmed));
       } catch {
-        // baris korup — lewati
+        // lewati baris korup
       }
     });
     rl.on('close', () => resolve(entries));
@@ -65,13 +61,13 @@ function computeStats(entries) {
     ignored: 0,
     duplicate: 0,
     email: { sent: 0, skipped: 0, failed: 0, unknown: 0 },
-    emailFailedEvents: 0, // entri error terpisah dengan reason 'email_failed'
-    sendFailed: 0, // gagal balas WhatsApp
+    emailFailedEvents: 0,
+    sendFailed: 0,
     firstTimestamp: null,
     lastTimestamp: null,
     lastSuccessAt: null,
     lastErrorAt: null,
-    byChat: {}, // chatId -> { success, error, ignored }
+    byChat: {},
   };
 
   for (const e of entries) {
@@ -115,12 +111,12 @@ function computeStats(entries) {
     }
   }
 
-  // Nominasi "nyata" yang diproses = success + error (abaikan ignored/duplicate)
+  // Nominasi yang diproses = success + error (abaikan ignored/duplicate)
   const processed = stats.success + stats.error;
   stats.processed = processed;
   stats.successRate = processed > 0 ? Math.round((stats.success / processed) * 1000) / 10 : 0;
 
-  // Email: dari nominasi sukses yang seharusnya kirim email (sent + failed)
+  // Percobaan email dihitung dari nominasi sukses yang statusnya sent/failed.
   const emailAttempts = stats.email.sent + stats.email.failed;
   stats.emailAttempts = emailAttempts;
   stats.emailDeliveryRate =
@@ -204,7 +200,7 @@ function emailBreakdown(stats) {
   ];
 }
 
-/** Kumpulkan stats + history + timeseries sekaligus (dipakai endpoint API). */
+/** Data lengkap untuk endpoint dashboard. */
 async function getDashboardData(opts = {}) {
   const entries = await readEntries();
   const stats = computeStats(entries);

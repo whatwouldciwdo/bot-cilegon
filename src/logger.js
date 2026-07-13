@@ -1,8 +1,7 @@
 'use strict';
 
 /**
- * Langkah 12-13 — Logging lengkap (sukses & gagal) + raw message.
- * Disimpan dalam format JSON Lines di folder logs/.
+ * Logging entri nominasi (sukses/gagal/diabaikan) dalam format JSON Lines.
  */
 
 const fs = require('fs');
