@@ -6,8 +6,12 @@ update selanjutnya cukup dengan `git pull` + rebuild.
 
 Stack yang berjalan:
 
-- **waha** — WhatsApp HTTP API (dashboard di port `3010`).
-- **bot** — backend Node.js (webhook + dashboard di port `3001`).
+- **waha** — WhatsApp HTTP API (dashboard di port host `8310`).
+- **bot** — backend Node.js (webhook + dashboard di port host `8301`).
+
+> Port host sengaja dibuat tidak umum (`8301`/`8310`) agar tidak bentrok dengan
+> layanan lain di server. Port **di dalam** container tetap `3001` (bot) dan
+> `3000` (WAHA); yang diubah hanya sisi kiri mapping di `docker-compose.yml`.
 
 ---
 
@@ -16,7 +20,7 @@ Stack yang berjalan:
 - Ubuntu 20.04 / 22.04 / 24.04 (fresh atau existing).
 - Akses `sudo`.
 - Domain/IP publik jika ingin diakses dari luar (opsional).
-- Port `3001` (bot) dan `3010` (WAHA) terbuka jika perlu diakses dari luar.
+- Port `8301` (bot) dan `8310` (WAHA) terbuka jika perlu diakses dari luar.
 
 ---
 
@@ -110,7 +114,7 @@ Nilai default yang perlu diperhatikan (ubah jika perlu):
 - `WAHA_API_KEY` di service `waha` dan `bot` **harus sama**.
 - `WAHA_DASHBOARD_PASSWORD` / `WHATSAPP_SWAGGER_PASSWORD` — ganti dari default
   `BotCilegon2026Pass` ke password kuat milik Anda untuk produksi.
-- Port host: `3010` (WAHA) dan `3001` (bot). Ubah sisi kiri mapping jika bentrok.
+- Port host: `8310` (WAHA) dan `8301` (bot). Ubah sisi kiri mapping jika masih bentrok.
 
 > Kalau Anda mengganti `WAHA_API_KEY` di compose, samakan juga di `.env`.
 
@@ -136,7 +140,7 @@ docker compose logs -f waha
 
 ## 7. Hubungkan WhatsApp (Scan QR)
 
-1. Buka dashboard WAHA: `http://<IP-SERVER>:3010`
+1. Buka dashboard WAHA: `http://<IP-SERVER>:8310`
    (login: `admin` / password sesuai `WAHA_DASHBOARD_PASSWORD`).
 2. Mulai session `default`, lalu **scan QR** dengan WhatsApp di HP.
 3. Sesi tersimpan di volume `waha_sessions`, jadi **tidak perlu scan ulang**
@@ -145,7 +149,7 @@ docker compose logs -f waha
 Cek status koneksi dari sisi bot:
 
 ```bash
-curl http://localhost:3001/api/waha-status
+curl http://localhost:8301/api/waha-status
 ```
 
 ---
@@ -154,16 +158,16 @@ curl http://localhost:3001/api/waha-status
 
 ```bash
 # Healthcheck
-curl http://localhost:3001/health
+curl http://localhost:8301/health
 
 # Info root
-curl http://localhost:3001/
+curl http://localhost:8301/
 
 # Uji koneksi SMTP (tanpa kirim email)
-curl http://localhost:3001/email-test
+curl http://localhost:8301/email-test
 ```
 
-Dashboard tracking history & performa: `http://<IP-SERVER>:3001/dashboard`.
+Dashboard tracking history & performa: `http://<IP-SERVER>:8301/dashboard`.
 
 Kirim pesan uji ke grup/nomor target dengan format nominasi, lalu pastikan bot
 membalas dan (jika `EMAIL_ENABLED=true`) email terkirim.
@@ -228,8 +232,8 @@ tail -f logs/nominasi.jsonl
 
 ```bash
 sudo ufw allow 22/tcp      # SSH
-sudo ufw allow 3001/tcp    # dashboard bot
-sudo ufw allow 3010/tcp    # dashboard WAHA
+sudo ufw allow 8301/tcp    # dashboard bot
+sudo ufw allow 8310/tcp    # dashboard WAHA
 sudo ufw enable
 sudo ufw status
 ```
